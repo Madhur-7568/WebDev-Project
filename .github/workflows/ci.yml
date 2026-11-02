@@ -1,0 +1,58 @@
+name: CampusSync CI Workflow
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  validate-server:
+    name: Backend Syntax & Smoke Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: server/package.json
+
+      - name: Install Server Dependencies
+        run: |
+          cd server
+          npm ci || npm install
+
+      - name: Check Node.js Syntax & Server Initialization
+        run: |
+          cd server
+          node --check src/server.js
+          node --check src/controllers/authController.js
+          node --check src/controllers/eventController.js
+
+  validate-client:
+    name: Frontend Build & Syntax Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: client/package.json
+
+      - name: Install Client Dependencies
+        run: |
+          cd client
+          npm ci || npm install
+
+      - name: Build Frontend
+        run: |
+          cd client
+          npm run build
