@@ -27,3 +27,4 @@ router.put('/:id', protect, authorize('organizer', 'admin'), updateEvent);
 router.delete('/:id', protect, authorize('organizer', 'admin'), deleteEvent);
 
 module.exports = router;
+

@@ -62,3 +62,4 @@ export const api = {
   // Stats
   getStats: () => request('/events/stats/overview')
 };
+

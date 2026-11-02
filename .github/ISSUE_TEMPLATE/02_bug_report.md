@@ -26,3 +26,4 @@ If applicable, add screenshots or console/terminal error logs to help explain yo
 - **Browser**: [e.g. Chrome, Firefox, Edge]
 - **Node.js Version**: [e.g. v20.x, v22.x]
 - **Branch**: [e.g. main, dev, feature/xyz]
+

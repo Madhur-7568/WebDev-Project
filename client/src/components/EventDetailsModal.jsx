@@ -165,3 +165,4 @@ export default function EventDetailsModal({ event, onClose, onRegister, onCancel
     </div>
   );
 }
+

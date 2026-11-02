@@ -33,3 +33,4 @@ export default function FilterBar({ selectedCategory, onSelectCategory, searchQu
     </div>
   );
 }
+

@@ -124,3 +124,4 @@ If you are a member of our project team:
 ## 📜 Academic Integrity & License
 This project was developed for the **College Web Development Laboratory Course**.  
 Distributed under the **MIT License**. See `LICENSE` for details.
+

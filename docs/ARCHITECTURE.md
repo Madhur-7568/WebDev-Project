@@ -95,3 +95,4 @@ CampusSync/
    - Password hashing with industry-standard salt rounds (`bcryptjs`).
    - Stateless JWT tokens passed via Authorization headers.
    - Role-Based Access Control (`student`, `organizer`, `admin`).
+

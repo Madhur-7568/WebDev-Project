@@ -75,3 +75,4 @@ export default function Navbar({ onOpenAuth, onOpenCreate, activeView, setActive
     </header>
   );
 }
+

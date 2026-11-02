@@ -167,3 +167,4 @@ export default function CreateEventModal({ isOpen, onClose, onCreateEvent }) {
     </div>
   );
 }
+

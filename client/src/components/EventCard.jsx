@@ -102,3 +102,4 @@ export default function EventCard({ event, onSelect, onRegister, onCancelRegistr
     </div>
   );
 }
+

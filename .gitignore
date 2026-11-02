@@ -47,3 +47,4 @@ data/
 *.sqlite
 *.sqlite3
 server/src/data/storage.json
+
