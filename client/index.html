@@ -2,17 +2,666 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CampusSync — College Event Management & Collaboration Portal</title>
-    <!-- Inter Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <title>VAMS — Smart Event Management Platform (SaaS)</title>
+    <link rel="icon" type="image/png" href="/vams-logo.png" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+    <!-- VAMS SaaS Design System CSS -->
+    <link rel="stylesheet" href="./src/styles/variables.css" />
+    <link rel="stylesheet" href="./src/styles/main.css" />
+    <link rel="stylesheet" href="./src/styles/landing.css" />
+    <link rel="stylesheet" href="./src/styles/dashboard.css" />
+
+    <!-- Lightweight CDNs for Visualizations & QR -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <!-- =====================================================================
+         VIEW 1: PUBLIC CONVERSION WEBSITE (Section 4.A)
+         ===================================================================== -->
+    <div id="view-landing">
+      <!-- Public Navbar -->
+      <header class="site-header">
+        <div class="container header-container">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <!-- 3-Line Hamburger Menu Feature on Left Side for Easy Access -->
+            <button type="button" class="btn-nav-hamburger" id="btn-open-nav-drawer" title="Open Navigation Menu" aria-label="Toggle Navigation Menu">
+              <span class="hamburger-bar"></span>
+              <span class="hamburger-bar"></span>
+              <span class="hamburger-bar"></span>
+            </button>
+
+            <a href="#landing" class="brand-wrap" data-route="landing">
+              <img src="/vams-logo.png" alt="VAMS Logo" class="brand-logo-img" />
+              <div class="brand-text">
+                <span class="brand-name">VAMS</span>
+                <span class="brand-sub">Smart Event Management</span>
+              </div>
+            </a>
+          </div>
+
+          <nav class="hide-on-mobile">
+            <ul class="nav-links">
+              <li><a href="#events-section" class="nav-link">Explore Events</a></li>
+              <li><a href="#how-it-works-section" class="nav-link">How VAMS Works</a></li>
+              <li><a href="#pricing-section" class="nav-link">Pricing</a></li>
+            </ul>
+          </nav>
+
+          <div class="header-actions">
+            <!-- Theme Mode Toggle -->
+            <button type="button" class="btn btn-outline btn-sm btn-icon-only" data-toggle-theme title="Toggle Theme">
+              🌓
+            </button>
+
+            <!-- Role Quick Switcher Pill -->
+            <div class="role-switcher-dropdown">
+              <button type="button" class="role-pill-btn" id="btn-role-switcher-toggle" onclick="document.getElementById('role-menu-dropdown').classList.toggle('active')">
+                <span>Role:</span>
+                <span class="active-role-label">ORGANIZER</span>
+                <span>▾</span>
+              </button>
+              <div id="role-menu-dropdown" style="display: none; position: absolute; right: 0; top: 110%; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 8px; box-shadow: var(--shadow-lg); width: 200px; padding: 6px; z-index: var(--z-elevated);">
+                <div style="font-size: 0.7rem; color: var(--color-text-muted); padding: 4px 8px; font-weight: bold;">DEMO ROLE PROFILES</div>
+                <button type="button" class="command-item" style="width: 100%; border: none; background: none; font-size: 0.8rem;" data-role-switch="organizer" onclick="document.getElementById('role-menu-dropdown').classList.remove('active')">👑 Event Organizer</button>
+                <button type="button" class="command-item" style="width: 100%; border: none; background: none; font-size: 0.8rem;" data-role-switch="superadmin" onclick="document.getElementById('role-menu-dropdown').classList.remove('active')">⚡ Super Admin</button>
+                <button type="button" class="command-item" style="width: 100%; border: none; background: none; font-size: 0.8rem;" data-role-switch="venue_manager" onclick="document.getElementById('role-menu-dropdown').classList.remove('active')">🏛️ Venue Manager</button>
+                <button type="button" class="command-item" style="width: 100%; border: none; background: none; font-size: 0.8rem;" data-role-switch="staff" onclick="document.getElementById('role-menu-dropdown').classList.remove('active')">🎫 Event Staff / QR</button>
+                <button type="button" class="command-item" style="width: 100%; border: none; background: none; font-size: 0.8rem;" data-role-switch="attendee" onclick="document.getElementById('role-menu-dropdown').classList.remove('active')">🎓 Student Attendee</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Slide-Out Left-Side Quick Navigation Drawer -->
+      <div class="nav-drawer-overlay" id="nav-drawer-overlay"></div>
+      <aside class="nav-drawer" id="nav-drawer" aria-label="Quick Access Navigation">
+        <div class="nav-drawer-header">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <img src="/vams-logo.png" alt="VAMS Logo" style="height: 36px; width: auto; border-radius: 4px;" />
+            <div>
+              <div style="font-weight: 800; font-size: 1.05rem; color: var(--color-primary-navy); line-height: 1.1;">VAMS Portal</div>
+              <div style="font-size: 0.68rem; color: var(--color-text-secondary); text-transform: uppercase; font-weight: 600;">Fast Access Menu</div>
+            </div>
+          </div>
+          <button type="button" class="nav-drawer-close-btn" id="btn-close-nav-drawer" title="Close Menu">✕</button>
+        </div>
+
+        <div class="nav-drawer-role-badge">
+          <div style="font-size: 0.7rem; color: var(--color-text-secondary); font-weight: 700; letter-spacing: 0.04em;">CURRENT PROFILE ROLE</div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+            <span class="badge badge-purple active-role-label" style="font-size: 0.75rem; font-weight: 700;">ORGANIZER</span>
+            <button type="button" class="btn-switch-role-text" onclick="window.vamsApp.showDashboard('settings'); document.getElementById('nav-drawer').classList.remove('active'); document.getElementById('nav-drawer-overlay').classList.remove('active');">Switch Profile ▾</button>
+          </div>
+        </div>
+
+        <div class="nav-drawer-search">
+          <span style="font-size: 0.9rem;">🔍</span>
+          <input 
+            type="text" 
+            id="drawer-search-input" 
+            placeholder="Quick search tabs, events, venues..." 
+            oninput="
+              const q = this.value.toLowerCase();
+              document.querySelectorAll('.drawer-nav-item').forEach(el => {
+                const txt = el.innerText.toLowerCase();
+                el.style.display = txt.includes(q) ? 'flex' : 'none';
+              });
+            "
+          />
+        </div>
+
+        <div class="nav-drawer-content">
+          <div class="drawer-nav-group">
+            <div class="drawer-group-title">CORE OPERATIONS</div>
+            <a href="#dashboard/overview" class="drawer-nav-item" data-route="dashboard/overview">
+              <span class="drawer-item-icon">📊</span>
+              <span class="drawer-item-text">Executive Overview</span>
+              <span class="badge badge-cyan" style="font-size: 0.65rem; margin-left: auto;">Stats</span>
+            </a>
+            <a href="#dashboard/events" class="drawer-nav-item" data-route="dashboard/events">
+              <span class="drawer-item-icon">🎪</span>
+              <span class="drawer-item-text">My Events & Catalog</span>
+            </a>
+            <a href="#dashboard/venues" class="drawer-nav-item" data-route="dashboard/venues">
+              <span class="drawer-item-icon">🏛️</span>
+              <span class="drawer-item-text">Venues & Availability Matrix</span>
+            </a>
+            <a href="#dashboard/seating" class="drawer-nav-item" data-route="dashboard/seating">
+              <span class="drawer-item-icon">💺</span>
+              <span class="drawer-item-text">Interactive Seating Layout</span>
+              <span class="badge badge-purple" style="font-size: 0.65rem; margin-left: auto;">HOT</span>
+            </a>
+          </div>
+
+          <div class="drawer-nav-group">
+            <div class="drawer-group-title">PEOPLE & LOGISTICS</div>
+            <a href="#dashboard/attendees" class="drawer-nav-item" data-route="dashboard/attendees">
+              <span class="drawer-item-icon">👥</span>
+              <span class="drawer-item-text">Attendees Directory</span>
+            </a>
+            <a href="#dashboard/agenda" class="drawer-nav-item" data-route="dashboard/agenda">
+              <span class="drawer-item-icon">📅</span>
+              <span class="drawer-item-text">Agenda & Conflicts</span>
+            </a>
+            <a href="#dashboard/qr-checkin" class="drawer-nav-item" data-route="dashboard/qr-checkin">
+              <span class="drawer-item-icon">🎫</span>
+              <span class="drawer-item-text">QR Ticket & Check-In</span>
+            </a>
+            <a href="#dashboard/speakers" class="drawer-nav-item" data-route="dashboard/speakers">
+              <span class="drawer-item-icon">🎙️</span>
+              <span class="drawer-item-text">Speakers Management</span>
+            </a>
+            <a href="#dashboard/sponsors" class="drawer-nav-item" data-route="dashboard/sponsors">
+              <span class="drawer-item-icon">🤝</span>
+              <span class="drawer-item-text">Sponsors & Packages</span>
+            </a>
+            <a href="#dashboard/volunteers" class="drawer-nav-item" data-route="dashboard/volunteers">
+              <span class="drawer-item-icon">🙋</span>
+              <span class="drawer-item-text">Volunteers Rostering</span>
+            </a>
+          </div>
+
+          <div class="drawer-nav-group">
+            <div class="drawer-group-title">FINANCIALS & SYSTEM</div>
+            <a href="#dashboard/budget" class="drawer-nav-item" data-route="dashboard/budget">
+              <span class="drawer-item-icon">💳</span>
+              <span class="drawer-item-text">Budget & Expenses</span>
+            </a>
+            <a href="#dashboard/reports" class="drawer-nav-item" data-route="dashboard/reports">
+              <span class="drawer-item-icon">📈</span>
+              <span class="drawer-item-text">Reports & Analytics</span>
+            </a>
+            <a href="#dashboard/settings" class="drawer-nav-item" data-route="dashboard/settings">
+              <span class="drawer-item-icon">⚙️</span>
+              <span class="drawer-item-text">Platform Settings & Roles</span>
+            </a>
+          </div>
+
+          <div class="drawer-nav-group">
+            <div class="drawer-group-title">CAMPUS DISCOVERY</div>
+            <a href="#events-section" class="drawer-nav-item" onclick="document.getElementById('nav-drawer').classList.remove('active'); document.getElementById('nav-drawer-overlay').classList.remove('active');">
+              <span class="drawer-item-icon">🌟</span>
+              <span class="drawer-item-text">Explore Campus Events</span>
+            </a>
+            <a href="#how-it-works-section" class="drawer-nav-item" onclick="document.getElementById('nav-drawer').classList.remove('active'); document.getElementById('nav-drawer-overlay').classList.remove('active');">
+              <span class="drawer-item-icon">ℹ️</span>
+              <span class="drawer-item-text">How VAMS Works</span>
+            </a>
+            <a href="#pricing-section" class="drawer-nav-item" onclick="document.getElementById('nav-drawer').classList.remove('active'); document.getElementById('nav-drawer-overlay').classList.remove('active');">
+              <span class="drawer-item-icon">💎</span>
+              <span class="drawer-item-text">Pricing Tiers</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="nav-drawer-footer">
+          <button type="button" class="btn btn-outline btn-sm" data-toggle-theme style="width: 100%; justify-content: center; gap: 8px;">
+            <span>🌓 Switch Theme (Dark / Light)</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Hero Section -->
+      <section class="landing-hero">
+        <div class="container">
+          <div class="hero-tag">
+            <span>✨</span> Next-Generation Campus Event Operating System
+          </div>
+
+          <h1 class="hero-title">
+            Smart Event Management, <span class="gradient-text">Intelligent Seating</span> & Campus Engagement
+          </h1>
+
+          <p class="hero-lead">
+            VAMS unifies <strong>Venue Allocation</strong>, <strong>Agenda Conflict Detection</strong>, <strong>Organizer Workflows</strong>, and <strong>Interactive Seating Passes</strong> into one unified enterprise SaaS platform.
+          </p>
+
+          <div class="hero-buttons">
+            <a href="#events-section" class="btn btn-primary btn-lg">
+              Explore Campus Events
+            </a>
+            <button type="button" class="btn btn-navy btn-lg" data-route="dashboard/events">
+              Launch Organizer Portal
+            </button>
+            <button type="button" class="btn btn-outline btn-lg" data-route="dashboard/seating">
+              Try Interactive Seating 💺
+            </button>
+          </div>
+
+          <!-- Quick Hero Search Bar -->
+          <div class="hero-search-card">
+            <span style="font-size: 1.1rem; color: var(--color-text-muted);">🔍</span>
+            <input 
+              type="text" 
+              class="hero-search-input" 
+              placeholder="Search by event title, hackathon, venue, or society..." 
+              id="hero-search-input"
+              oninput="window.vamsApp.searchQuery = this.value; window.vamsApp.renderPublicEvents();"
+            />
+            <select 
+              class="hero-search-category"
+              onchange="window.vamsApp.activeCategoryFilter = this.value; window.vamsApp.renderCategoryPills(); window.vamsApp.renderPublicEvents();"
+            >
+              <option value="All">All Categories</option>
+              <option value="Technical">Technical</option>
+              <option value="Cultural">Cultural</option>
+              <option value="Workshop">Workshop</option>
+              <option value="Sports">Sports</option>
+              <option value="Gaming">Gaming</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Explore Events Section -->
+      <section class="section" id="events-section">
+        <div class="container">
+          <div class="section-header">
+            <div class="section-badge">Live Event Catalog</div>
+            <h2 class="section-title">Discover Featured Campus Events</h2>
+            <p class="section-desc">
+              Browse premier hackathons, cultural festivals, sports tournaments, and masterclasses with real-time seat reservation.
+            </p>
+          </div>
+
+          <!-- Category Pills -->
+          <div class="filter-pills-wrap" id="landing-category-pills"></div>
+
+          <!-- Event Grid -->
+          <div class="events-grid" id="public-events-grid"></div>
+        </div>
+      </section>
+
+      <!-- How VAMS Works (4 Pillars) -->
+      <section class="section section-alt" id="how-it-works-section">
+        <div class="container">
+          <div class="section-header">
+            <div class="section-badge">Architecture & Philosophy</div>
+            <h2 class="section-title">How VAMS Powers Campus Events</h2>
+            <p class="section-desc">
+              Built upon the four pillars of flawless event coordination: Venue, Agenda, Management, and Seats.
+            </p>
+          </div>
+
+          <div class="vams-pillars-grid">
+            <div class="pillar-feature-card">
+              <div class="pillar-icon-box pillar-icon-v">V</div>
+              <h3 class="pillar-title">Venue Coordination</h3>
+              <p class="pillar-desc">
+                Centralized directory of auditoriums, high-performance computing labs, and seminar halls with real-time calendar conflict resolution.
+              </p>
+            </div>
+
+            <div class="pillar-feature-card">
+              <div class="pillar-icon-box pillar-icon-a">A</div>
+              <h3 class="pillar-title">Agenda & Timelines</h3>
+              <p class="pillar-desc">
+                Automated timetable engine with JavaScript conflict detection that flags double-booked keynote speakers and room schedule overlaps.
+              </p>
+            </div>
+
+            <div class="pillar-feature-card">
+              <div class="pillar-icon-box pillar-icon-m">M</div>
+              <h3 class="pillar-title">Management System</h3>
+              <p class="pillar-desc">
+                End-to-end organizers suite: sponsor tracking, volunteer duty scheduling, itemized budget tracking, and real-time RSVPs.
+              </p>
+            </div>
+
+            <div class="pillar-feature-card">
+              <div class="pillar-icon-box pillar-icon-s">S</div>
+              <h3 class="pillar-title">Schedule & Seats</h3>
+              <p class="pillar-desc">
+                Interactive SVG visual seating matrix with VIP/Premium tiering, instant verified QR ticket passes, and turnstile check-in simulator.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pricing Plans for Societies -->
+      <section class="section section-alt" id="pricing-section">
+        <div class="container">
+          <div class="section-header">
+            <div class="section-badge">SaaS Tiers</div>
+            <h2 class="section-title">Transparent Plans for Campus Societies</h2>
+            <p class="section-desc">
+              Empower student clubs and faculty departments with professional event tools.
+            </p>
+          </div>
+
+          <div class="pricing-grid">
+            <div class="pricing-card">
+              <h4 class="pricing-name">Student Chapter</h4>
+              <div class="pricing-price">₹0 <span style="font-size: 1rem; color: var(--color-text-secondary); font-weight: normal;">/ semester</span></div>
+              <p style="font-size: 0.85rem; color: var(--color-text-secondary); margin-bottom: 20px;">For student interest groups and coding clubs.</p>
+              <ul class="pricing-features">
+                <li class="pricing-feature-item">✓ Up to 5 Campus Events</li>
+                <li class="pricing-feature-item">✓ Instant Free RSVP Booking</li>
+                <li class="pricing-feature-item">✓ Standard Digital Passes</li>
+                <li class="pricing-feature-item">✓ CSV Attendee Export</li>
+              </ul>
+              <button type="button" class="btn btn-outline" data-route="dashboard/events">Get Started</button>
+            </div>
+
+            <div class="pricing-card featured">
+              <div class="pricing-badge">MOST POPULAR</div>
+              <h4 class="pricing-name">Society Pro</h4>
+              <div class="pricing-price">₹2,499 <span style="font-size: 1rem; color: var(--color-text-secondary); font-weight: normal;">/ annual</span></div>
+              <p style="font-size: 0.85rem; color: var(--color-text-secondary); margin-bottom: 20px;">For major annual fests and national hackathons.</p>
+              <ul class="pricing-features">
+                <li class="pricing-feature-item">✓ Unlimited Published Events</li>
+                <li class="pricing-feature-item">✓ Visual Interactive Seating Map</li>
+                <li class="pricing-feature-item">✓ QR Ticket Check-in Scanner</li>
+                <li class="pricing-feature-item">✓ Agenda Conflict Detection</li>
+                <li class="pricing-feature-item">✓ Sponsor & Volunteer Portals</li>
+                <li class="pricing-feature-item">✓ Official Merit Certificate Generator</li>
+              </ul>
+              <button type="button" class="btn btn-primary" data-route="dashboard/overview">Deploy Pro Platform</button>
+            </div>
+
+            <div class="pricing-card">
+              <h4 class="pricing-name">University Enterprise</h4>
+              <div class="pricing-price">Custom</div>
+              <p style="font-size: 0.85rem; color: var(--color-text-secondary); margin-bottom: 20px;">For multi-campus university administrations.</p>
+              <ul class="pricing-features">
+                <li class="pricing-feature-item">✓ Full Multi-Department Support</li>
+                <li class="pricing-feature-item">✓ Central Venue Allocation Matrix</li>
+                <li class="pricing-feature-item">✓ Super Admin Audit Trail</li>
+                <li class="pricing-feature-item">✓ Custom SSO & Turnstile Hardware</li>
+              </ul>
+              <button type="button" class="btn btn-navy" data-route="dashboard/settings">Contact Administration</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Public Footer -->
+      <footer class="site-footer">
+        <div class="container">
+          <div class="footer-grid">
+            <div class="footer-col">
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+                <img src="/vams-logo.png" alt="VAMS" style="height: 38px; border-radius: 6px; background: #fff; padding: 2px;" />
+                <span style="font-size: 1.3rem; font-weight: 800; color: #fff;">VAMS</span>
+              </div>
+              <p style="font-size: 0.85rem; line-height: 1.6; color: #94A3B8; margin-bottom: 18px;">
+                VAMS (Venue, Agenda, Management, Schedule) is the smart commercial event management software engineered for colleges and technical universities.
+              </p>
+              <span class="badge badge-success">● System Operational (Frontend-Only Architecture)</span>
+            </div>
+
+            <div class="footer-col">
+              <h5>Platform</h5>
+              <ul class="footer-links-list">
+                <li><a href="#events-section">Browse Events</a></li>
+                <li><a href="#dashboard/venues" data-route="dashboard/venues">Campus Venues</a></li>
+                <li><a href="#how-it-works-section">How VAMS Works</a></li>
+                <li><a href="#pricing-section">Pricing Tiers</a></li>
+              </ul>
+            </div>
+
+            <div class="footer-col">
+              <h5>Modules</h5>
+              <ul class="footer-links-list">
+                <li><a href="#dashboard/seating" data-route="dashboard/seating">Seating Editor</a></li>
+                <li><a href="#dashboard/agenda" data-route="dashboard/agenda">Conflict Detection</a></li>
+                <li><a href="#dashboard/qr-checkin" data-route="dashboard/qr-checkin">QR Check-in</a></li>
+                <li><a href="#dashboard/budget" data-route="dashboard/budget">Budget Management</a></li>
+              </ul>
+            </div>
+
+            <div class="footer-col">
+              <h5>Demo Access</h5>
+              <ul class="footer-links-list">
+                <li><a href="#dashboard/overview" data-route="dashboard/overview">Organizer View</a></li>
+                <li><a href="#dashboard/venues" data-route="dashboard/venues">Venue Manager View</a></li>
+                <li><a href="#dashboard/attendees" data-route="dashboard/attendees">Attendee Directory</a></li>
+                <li><a href="#dashboard/settings" data-route="dashboard/settings">Reset Demo Data</a></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="footer-bottom">
+            <div>
+              © 2026 <strong>VAMS — Smart Event Management</strong>. Built with HTML5, CSS3, Vanilla ES6+ JavaScript.
+            </div>
+            <div>
+              MIT Licensed • Pure Frontend SaaS Architecture
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+
+    <!-- =====================================================================
+         VIEW 2: ENTERPRISE SAAS DASHBOARD (Section 4.C - 4.O)
+         ===================================================================== -->
+    <div id="view-dashboard" style="display: none;" class="dashboard-layout">
+      <!-- Collapsible Sidebar -->
+      <aside class="dashboard-sidebar">
+        <div class="sidebar-header">
+          <a href="#landing" class="sidebar-brand" data-route="landing">
+            <img src="/vams-logo.png" alt="VAMS" class="sidebar-logo" />
+            <span class="sidebar-brand-name">VAMS SaaS</span>
+          </a>
+          <button type="button" class="sidebar-toggle-btn" id="btn-sidebar-toggle" title="Toggle Sidebar">
+            ☰
+          </button>
+        </div>
+
+        <!-- Embedded Sidebar Search (No Key Press Required) -->
+        <div class="sidebar-search-box">
+          <span class="sidebar-search-icon">🔍</span>
+          <input 
+            type="text" 
+            id="sidebar-nav-search" 
+            class="sidebar-search-input" 
+            placeholder="Search tabs, events, seats..." 
+            autocomplete="off"
+          />
+          <button type="button" id="btn-clear-sidebar-search" class="sidebar-search-clear-btn" style="display: none;">✕</button>
+        </div>
+        <div id="sidebar-search-results-list" style="padding: 0 8px;"></div>
+
+        <nav class="sidebar-nav">
+          <div class="sidebar-section-title">CORE OPERATIONS</div>
+          <div class="sidebar-item active" data-tab="overview">
+            <span class="sidebar-item-icon">📊</span>
+            <span class="sidebar-item-label">Overview</span>
+          </div>
+          <div class="sidebar-item" data-tab="events">
+            <span class="sidebar-item-icon">🎪</span>
+            <span class="sidebar-item-label">My Events</span>
+          </div>
+          <div class="sidebar-item" data-tab="venues">
+            <span class="sidebar-item-icon">🏛️</span>
+            <span class="sidebar-item-label">Venues & Matrix</span>
+          </div>
+          <div class="sidebar-item" data-tab="seating">
+            <span class="sidebar-item-icon">💺</span>
+            <span class="sidebar-item-label">Seating Layout</span>
+            <span class="sidebar-item-badge">HOT</span>
+          </div>
+
+          <div class="sidebar-section-title">PEOPLE & LOGISTICS</div>
+          <div class="sidebar-item" data-tab="attendees">
+            <span class="sidebar-item-icon">👥</span>
+            <span class="sidebar-item-label">Attendees</span>
+          </div>
+          <div class="sidebar-item" data-tab="agenda">
+            <span class="sidebar-item-icon">📅</span>
+            <span class="sidebar-item-label">Agenda & Conflicts</span>
+          </div>
+          <div class="sidebar-item" data-tab="qr-checkin">
+            <span class="sidebar-item-icon">🎫</span>
+            <span class="sidebar-item-label">QR Check-In Scanner</span>
+          </div>
+          <div class="sidebar-item" data-tab="speakers">
+            <span class="sidebar-item-icon">🎙️</span>
+            <span class="sidebar-item-label">Speakers</span>
+          </div>
+          <div class="sidebar-item" data-tab="sponsors">
+            <span class="sidebar-item-icon">🤝</span>
+            <span class="sidebar-item-label">Sponsors</span>
+          </div>
+          <div class="sidebar-item" data-tab="volunteers">
+            <span class="sidebar-item-icon">🙋</span>
+            <span class="sidebar-item-label">Volunteers</span>
+          </div>
+
+          <div class="sidebar-section-title">FINANCIALS & INSIGHTS</div>
+          <div class="sidebar-item" data-tab="budget">
+            <span class="sidebar-item-icon">💰</span>
+            <span class="sidebar-item-label">Budget & Expenses</span>
+          </div>
+          <div class="sidebar-item" data-tab="analytics">
+            <span class="sidebar-item-icon">📈</span>
+            <span class="sidebar-item-label">Reports & Analytics</span>
+          </div>
+          <div class="sidebar-item" data-tab="notifications">
+            <span class="sidebar-item-icon">🔔</span>
+            <span class="sidebar-item-label">Notifications</span>
+          </div>
+          <div class="sidebar-item" data-tab="settings">
+            <span class="sidebar-item-icon">⚙️</span>
+            <span class="sidebar-item-label">Settings & Reset</span>
+          </div>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="sidebar-user-info">
+            <div class="sidebar-avatar active-user-avatar">PV</div>
+            <div class="sidebar-user-text">
+              <div class="sidebar-user-name active-user-name">Priya Verma</div>
+              <div class="sidebar-user-role active-role-label">ORGANIZER</div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-ghost btn-sm btn-icon-only" data-route="landing" title="Back to Public Site">
+            ↗
+          </button>
+        </div>
+      </aside>
+
+      <!-- Dashboard Main Work Area -->
+      <main class="dashboard-main">
+        <!-- Topbar -->
+        <header class="dashboard-topbar">
+          <div class="topbar-left">
+            <button type="button" class="topbar-search-btn" onclick="document.getElementById('sidebar-nav-search')?.focus();" title="Focus Sidebar Search">
+              <span>🔍 Quick Search & Jump</span>
+              <kbd style="background: var(--color-secondary-light); color: var(--color-secondary-purple); font-weight: bold; border-color: rgba(115, 87, 255, 0.3);">Sidebar</kbd>
+            </button>
+          </div>
+
+          <div class="topbar-right">
+            <button type="button" class="btn btn-outline btn-sm btn-icon-only" data-toggle-theme title="Toggle Theme">
+              🌓
+            </button>
+
+            <!-- Active Role Indicator -->
+            <button type="button" class="btn btn-outline btn-sm" onclick="window.vamsApp.showDashboard('settings')">
+              <span>Role:</span>
+              <strong class="active-role-label">ORGANIZER</strong>
+            </button>
+
+            <!-- Public View Button -->
+            <button type="button" class="btn btn-navy btn-sm" data-route="landing">
+              🌐 View Public Site
+            </button>
+          </div>
+        </header>
+
+        <!-- Dashboard Content Body -->
+        <div class="dashboard-content">
+          <div class="dashboard-page-header">
+            <div>
+              <h1 class="page-header-title" id="dashboard-view-title">Executive Overview</h1>
+              <p class="page-header-subtitle" id="dashboard-view-subtitle">Real-time performance metrics and campus engagement summary.</p>
+            </div>
+          </div>
+
+          <!-- Dynamic Tab Content Render Target -->
+          <div id="dashboard-tab-content"></div>
+        </div>
+      </main>
+    </div>
+
+
+    <!-- =====================================================================
+         GLOBAL SEARCH COMMAND PALETTE MODAL (Ctrl + K)
+         ===================================================================== -->
+    <div class="command-palette-overlay" id="command-palette-overlay">
+      <div class="command-palette">
+        <div class="command-palette-input-wrap">
+          <span style="font-size: 1.2rem;">🔍</span>
+          <input 
+            type="text" 
+            class="command-palette-input" 
+            placeholder="Type a command or search events, venues, sessions..." 
+            id="global-command-input"
+            oninput="
+              const q = this.value.toLowerCase();
+              const container = document.getElementById('palette-results');
+              const events = window.vamsApp.store.getEvents().filter(e => e.title.toLowerCase().includes(q));
+              container.innerHTML = events.slice(0, 5).map(e => `
+                <div class='command-item' onclick='window.vamsApp.closeCommandPalette(); window.vamsApp.openBookingOrSeatingModal(\x22${e.id}\x22)'>
+                  <span>🎪 ${e.title}</span>
+                  <span class='badge badge-purple'>${e.category}</span>
+                </div>
+              `).join('') + `
+                <div class='command-item' onclick='window.vamsApp.closeCommandPalette(); window.vamsApp.showDashboard(\x22events\x22)'>
+                  <span>📋 Go to Event Catalog</span>
+                  <kbd>Jump</kbd>
+                </div>
+                <div class='command-item' onclick='window.vamsApp.closeCommandPalette(); window.vamsApp.showDashboard(\x22seating\x22)'>
+                  <span>💺 Open Seating Layout Editor</span>
+                  <kbd>Jump</kbd>
+                </div>
+                <div class='command-item' onclick='window.vamsApp.closeCommandPalette(); window.vamsApp.showDashboard(\x22agenda\x22)'>
+                  <span>📅 Open Schedule Conflict Engine</span>
+                  <kbd>Jump</kbd>
+                </div>
+              `;
+            "
+          />
+          <button type="button" class="btn btn-ghost btn-sm" onclick="window.vamsApp.closeCommandPalette()">ESC</button>
+        </div>
+        <div class="command-palette-results" id="palette-results">
+          <div class="command-item" onclick="window.vamsApp.closeCommandPalette(); window.vamsApp.showDashboard('overview')">
+            <span>📊 Jump to Executive Overview</span>
+            <kbd>Enter</kbd>
+          </div>
+          <div class="command-item" onclick="window.vamsApp.closeCommandPalette(); window.vamsApp.showDashboard('seating')">
+            <span>💺 Open Visual Seating Matrix</span>
+            <kbd>Enter</kbd>
+          </div>
+          <div class="command-item" onclick="window.vamsApp.closeCommandPalette(); window.vamsApp.showDashboard('agenda')">
+            <span>⚠️ Run Schedule Conflict Detector</span>
+            <kbd>Enter</kbd>
+          </div>
+          <div class="command-item" onclick="window.vamsApp.closeCommandPalette(); window.vamsApp.showDashboard('qr-checkin')">
+            <span>🎫 Open Live QR Ticket Scanner</span>
+            <kbd>Enter</kbd>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Pure ES6+ Vanilla JavaScript Master Application -->
+    <script type="module" src="./src/js/app.js"></script>
   </body>
 </html>
-
