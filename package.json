@@ -1,7 +1,7 @@
 {
-  "name": "campussync-event-management",
+  "name": "vams-smart-event-management",
   "version": "1.0.0",
-  "description": "Full-stack Campus Event Management & Collaboration Portal for College WebDev Lab",
+  "description": "VAMS — Smart Campus Event Management & Collaboration Portal (Venue, Agenda, Management, Seats)",
   "private": true,
   "workspaces": [
     "client",

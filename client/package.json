@@ -1,7 +1,8 @@
 {
-  "name": "campussync-client",
+  "name": "vams-client",
   "private": true,
-  "version": "1.0.0",
+  "version": "2.0.0",
+  "description": "VAMS Smart Event Management — Pure HTML5, CSS3, and ES6+ Vanilla JavaScript Client",
   "type": "module",
   "scripts": {
     "dev": "vite",

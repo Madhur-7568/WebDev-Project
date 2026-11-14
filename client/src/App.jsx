@@ -9,7 +9,7 @@ import AuthModal from './components/AuthModal';
 import Toast from './components/Toast';
 import { useAuth } from './context/AuthContext';
 import { api } from './services/api';
-import { Sparkles, CalendarX, Plus } from 'lucide-react';
+import { Sparkles, CalendarX, MapPin, Calendar, Users, Clock } from 'lucide-react';
 
 export default function App() {
   const { user, isAuthenticated, isOrganizer } = useAuth();
@@ -155,7 +155,7 @@ export default function App() {
 
   const handleCreateEvent = async (eventData) => {
     try {
-      const res = await api.createEvent(eventData);
+      await api.createEvent(eventData);
       addToast('🚀 New campus event published successfully!', 'success');
       loadEvents();
       loadStats();
@@ -180,7 +180,7 @@ export default function App() {
 
   return (
     <div className="app-container">
-      {/* Top Navigation */}
+      {/* Top Navigation with Brand Logo */}
       <Navbar
         onOpenAuth={() => setIsAuthOpen(true)}
         onOpenCreate={() => setIsCreateOpen(true)}
@@ -191,16 +191,53 @@ export default function App() {
       {/* Hero Section */}
       <section className="hero">
         <div className="container">
-          <div className="hero-badge">
-            <Sparkles size={14} />
-            <span>Official Campus Portal</span>
+          <div className="hero-badge-pill">
+            <Sparkles size={15} />
+            <span>VAMS — Smart Event Management System</span>
           </div>
+
           <h1 className="hero-title">
-            Discover & Experience <span>Campus Events</span>
+            Connect, Experience & <span>Manage Campus Events</span>
           </h1>
+
           <p className="hero-subtitle">
-            From premier 24-hour hackathons and technical bootcamps to annual cultural galas and sports showdowns. Register instantly with your student credentials.
+            From technical hackathons and cultural galas to sports championships. Real-time seat allocation, digital ticketing, and seamless organizer dashboards.
           </p>
+
+          {/* V-A-M-S Core Pillars Breakdown */}
+          <div className="vams-pillars-row">
+            <div className="pillar-card">
+              <div className="pillar-letter letter-v">V</div>
+              <div className="pillar-info">
+                <h5>Venue</h5>
+                <p>Campus Halls & Arenas</p>
+              </div>
+            </div>
+
+            <div className="pillar-card">
+              <div className="pillar-letter letter-a">A</div>
+              <div className="pillar-info">
+                <h5>Agenda</h5>
+                <p>Live Schedules & Timelines</p>
+              </div>
+            </div>
+
+            <div className="pillar-card">
+              <div className="pillar-letter letter-m">M</div>
+              <div className="pillar-info">
+                <h5>Management</h5>
+                <p>RSVP & Organizer Tools</p>
+              </div>
+            </div>
+
+            <div className="pillar-card">
+              <div className="pillar-letter letter-s">S</div>
+              <div className="pillar-info">
+                <h5>Seats & Passes</h5>
+                <p>Instant Ticket Allocation</p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -218,15 +255,15 @@ export default function App() {
         />
 
         {/* Section Heading */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.75rem' }}>
           <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>
-              {activeView === 'my-registrations' ? '🎟️ My Event Registrations' : 'Explore Upcoming Events'}
+            <h2 style={{ fontSize: '1.6rem', fontWeight: 800, letterSpacing: '-0.02em' }}>
+              {activeView === 'my-registrations' ? '🎟️ My Event Registrations' : 'Explore Featured Events'}
             </h2>
             <p style={{ fontSize: '0.875rem', color: '#64748b' }}>
               {activeView === 'my-registrations'
                 ? 'All college events and sessions you have RSVP’d for'
-                : `Showing ${displayedEvents.length} events matching your selection`}
+                : `Showing ${displayedEvents.length} events matching your criteria`}
             </p>
           </div>
 
@@ -272,7 +309,7 @@ export default function App() {
             >
               <CalendarX size={32} />
             </div>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '6px' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '6px' }}>
               {activeView === 'my-registrations' ? 'No Registered Events Yet' : 'No Events Found'}
             </h3>
             <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
@@ -335,9 +372,41 @@ export default function App() {
         onSuccess={(msg) => addToast(msg, 'success')}
       />
 
+      {/* Footer */}
+      <footer className="footer">
+        <div className="container">
+          <div className="footer-top">
+            <div className="footer-brand">
+              <img src="/vams-logo.png" alt="VAMS" className="footer-logo-img" />
+              <div>
+                <h4>VAMS</h4>
+                <p>Smart Event Management & Campus Collaboration Portal</p>
+              </div>
+            </div>
+
+            <div className="footer-links">
+              <a href="#events" className="footer-link" onClick={() => setActiveView('all')}>Events Feed</a>
+              <span style={{ color: '#334155' }}>•</span>
+              <a href="#about" className="footer-link" onClick={() => setIsAuthOpen(true)}>Organizer Login</a>
+              <span style={{ color: '#334155' }}>•</span>
+              <a href="/api/health" target="_blank" rel="noreferrer" className="footer-link">API Status</a>
+            </div>
+          </div>
+
+          <div className="footer-bottom">
+            <div>
+              © 2026 <strong>VAMS</strong> — Built with React 18, Vite, Node.js & Express.
+            </div>
+            <div className="footer-status-pill">
+              <span className="status-dot"></span>
+              <span>Backend & Local Storage Online</span>
+            </div>
+          </div>
+        </div>
+      </footer>
+
       {/* Toast Notification Container */}
       <Toast toasts={toasts} onDismiss={removeToast} />
     </div>
   );
 }
-

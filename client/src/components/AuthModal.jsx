@@ -55,7 +55,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
       <div className="modal-box" style={{ maxWidth: '440px' }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3 style={{ fontSize: '1.25rem', fontWeight: 800 }}>
-            {isRegister ? 'Create Student Account' : 'Welcome to CampusSync'}
+            {isRegister ? 'Create Student Account' : 'Welcome to VAMS'}
           </h3>
           <button className="modal-close" onClick={onClose}>
             <X size={20} />
@@ -194,7 +194,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
               </span>
             ) : (
               <span>
-                New to CampusSync?{' '}
+                New to VAMS?{' '}
                 <button
                   type="button"
                   style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 700, cursor: 'pointer' }}
