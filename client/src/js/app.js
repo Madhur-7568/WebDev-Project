@@ -1,3 +1,4 @@
+import { calendarManager } from './calendar.js';
 /**
  * VAMS Smart Event Management — Master Application Controller
  * Handles Public Website, SaaS Dashboard, Interactive Seating,
@@ -259,6 +260,7 @@ class VAMSApp {
       'venues': ['Venue Allocations & Availability Matrix', 'Campus auditoriums, labs, and interactive availability schedule.'],
       'seating': ['Interactive Seating Layout Editor', 'Visual seat mapping, VIP tiers, and real-time seat reservation.'],
       'attendees': ['Attendee Management & Verification', 'Registration lists, ticket status, and export to CSV.'],
+      'calendar': ['Interactive Monthly Event Calendar', 'Browse scheduled campus events across dates, filter by category, and inspect daily schedules.'],
       'agenda': ['Agenda & Schedule Engine', 'Multi-session timeline with intelligent conflict detection.'],
       'qr-checkin': ['QR Ticket Scanner & Pass Generator', 'Live turnstile check-in simulator and badge printouts.'],
       'speakers': ['Distinguished Keynote Speakers', 'Speaker profiles, bios, and assigned breakout sessions.'],
@@ -295,6 +297,9 @@ class VAMSApp {
         break;
       case 'attendees':
         this.renderDashboardAttendees(contentArea);
+        break;
+      case 'calendar':
+        calendarManager.render(contentArea);
         break;
       case 'agenda':
         this.renderDashboardAgenda(contentArea);
