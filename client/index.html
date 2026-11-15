@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>VAMS — Smart Event Management Platform (SaaS)</title>
-    <link rel="icon" type="image/png" href="/vams-logo.png" />
+    <link rel="icon" type="image/png" href="./public/vams-logo.png" />
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -14,6 +14,7 @@
     <!-- VAMS SaaS Design System CSS -->
     <link rel="stylesheet" href="./src/styles/variables.css" />
     <link rel="stylesheet" href="./src/styles/main.css" />
+    <link rel="stylesheet" href="./src/styles/auth.css" />
     <link rel="stylesheet" href="./src/styles/landing.css" />
     <link rel="stylesheet" href="./src/styles/dashboard.css" />
 
@@ -39,7 +40,7 @@
             </button>
 
             <a href="#landing" class="brand-wrap" data-route="landing">
-              <img src="/vams-logo.png" alt="VAMS Logo" class="brand-logo-img" />
+              <img src="./public/vams-logo.png" alt="VAMS Logo" class="brand-logo-img" />
               <div class="brand-text">
                 <span class="brand-name">VAMS</span>
                 <span class="brand-sub">Smart Event Management</span>
@@ -56,6 +57,11 @@
           </nav>
 
           <div class="header-actions">
+            <!-- Login / Account Button -->
+            <button type="button" class="btn btn-primary btn-sm" id="btn-header-auth" onclick="window.vamsAuth && window.vamsAuth.openAuthPage('login')">
+              🔐 Sign In
+            </button>
+
             <!-- Theme Mode Toggle -->
             <button type="button" class="btn btn-outline btn-sm btn-icon-only" data-toggle-theme title="Toggle Theme">
               🌓
@@ -86,7 +92,7 @@
       <aside class="nav-drawer" id="nav-drawer" aria-label="Quick Access Navigation">
         <div class="nav-drawer-header">
           <div style="display: flex; align-items: center; gap: 10px;">
-            <img src="/vams-logo.png" alt="VAMS Logo" style="height: 36px; width: auto; border-radius: 4px;" />
+            <img src="./public/vams-logo.png" alt="VAMS Logo" style="height: 36px; width: auto; border-radius: 4px;" />
             <div>
               <div style="font-weight: 800; font-size: 1.05rem; color: var(--color-primary-navy); line-height: 1.1;">VAMS Portal</div>
               <div style="font-size: 0.68rem; color: var(--color-text-secondary); text-transform: uppercase; font-weight: 600;">Fast Access Menu</div>
@@ -391,7 +397,7 @@
           <div class="footer-grid">
             <div class="footer-col">
               <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
-                <img src="/vams-logo.png" alt="VAMS" style="height: 38px; border-radius: 6px; background: #fff; padding: 2px;" />
+                <img src="./public/vams-logo.png" alt="VAMS" style="height: 38px; border-radius: 6px; background: #fff; padding: 2px;" />
                 <span style="font-size: 1.3rem; font-weight: 800; color: #fff;">VAMS</span>
               </div>
               <p style="font-size: 0.85rem; line-height: 1.6; color: #94A3B8; margin-bottom: 18px;">
@@ -447,12 +453,15 @@
     <!-- =====================================================================
          VIEW 2: ENTERPRISE SAAS DASHBOARD (Section 4.C - 4.O)
          ===================================================================== -->
+    <!-- Full-Page Authentication & Role Login Portal -->
+    <div id="view-auth" style="display: none;"></div>
+
     <div id="view-dashboard" style="display: none;" class="dashboard-layout">
       <!-- Collapsible Sidebar -->
       <aside class="dashboard-sidebar">
         <div class="sidebar-header">
           <a href="#landing" class="sidebar-brand" data-route="landing">
-            <img src="/vams-logo.png" alt="VAMS" class="sidebar-logo" />
+            <img src="./public/vams-logo.png" alt="VAMS" class="sidebar-logo" />
             <span class="sidebar-brand-name">VAMS SaaS</span>
           </a>
           <button type="button" class="sidebar-toggle-btn" id="btn-sidebar-toggle" title="Toggle Sidebar">
