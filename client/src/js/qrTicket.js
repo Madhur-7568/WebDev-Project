@@ -18,6 +18,16 @@ export class QRTicketService {
 
     return `
       <div class="ticket-pass-card" id="printable-ticket">
+        <!-- Institution Seal & Admit Card Banner -->
+        <div style="text-align: center; border-bottom: 2px solid var(--color-border); padding-bottom: 10px; margin-bottom: 14px;">
+          <div style="font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-primary-navy);">
+            🏛️ VAMS UNIVERSITY • CAMPUS EVENT ENTRY PASS
+          </div>
+          <div style="font-size: 0.7rem; color: var(--color-text-muted); margin-top: 2px;">
+            Authorized by Student Affairs & Technical Council • Academic Year 2026
+          </div>
+        </div>
+
         <!-- Ticket Header -->
         <div class="ticket-header-strip">
           <div>
@@ -34,6 +44,7 @@ export class QRTicketService {
             <div style="font-family: var(--font-family-mono); font-weight: 800; font-size: 0.95rem; color: var(--color-secondary-purple); letter-spacing: 0.05em;">
               ${attendee.ticketId}
             </div>
+            <div style="font-size: 0.65rem; color: #15803d; font-weight: 700; margin-top: 2px;">VERIFIED ACTIVE</div>
           </div>
         </div>
 
@@ -76,10 +87,23 @@ export class QRTicketService {
           Hold QR code in front of gate scanner. Digital seat verification is encrypted.
         </p>
 
-        <!-- Print Action -->
-        <div style="display: flex; justify-content: center; gap: 12px; margin-top: 18px;" class="hide-on-print">
-          <button type="button" class="btn btn-navy" onclick="window.print()">
-            🖨️ Print / Download Ticket
+        <!-- Terms & Instructions (Admit Card Standard) -->
+        <div style="margin-top: 14px; padding: 10px 14px; background: #f8fafc; border-left: 3px solid #6366f1; border-radius: 4px; font-size: 0.72rem; color: #475569; line-height: 1.5;">
+          <strong>📌 Important Guidelines for Attendees:</strong>
+          <ul style="padding-left: 16px; margin-top: 4px; margin-bottom: 0;">
+            <li>Please present this digital or printed pass along with a valid College ID at Turnstile Gate A.</li>
+            <li>Entry gates close strictly 15 minutes before event commencement.</li>
+            <li>Seat assignment is verified via QR and strictly non-transferable.</li>
+          </ul>
+        </div>
+
+        <!-- Print & Download Actions -->
+        <div style="display: flex; justify-content: center; gap: 10px; margin-top: 18px; flex-wrap: wrap;" class="hide-on-print">
+          <button type="button" class="btn btn-navy" onclick="window.printTicketPass('${attendee.ticketId}', '${attendee.name.replace(/'/g, '')}')">
+            🖨️ Print / Save as PDF Pass
+          </button>
+          <button type="button" class="btn btn-outline" onclick="navigator.clipboard.writeText('${attendee.ticketId}'); window.vamsApp?.showToast('Ticket ID copied to clipboard: ${attendee.ticketId}', 'success');">
+            📋 Copy Ticket ID
           </button>
         </div>
       </div>
@@ -125,4 +149,17 @@ export class QRTicketService {
     if (!cleanId) return { success: false, message: 'Please enter or scan a valid Ticket ID.' };
     return this.store.checkInAttendee(cleanId);
   }
+}
+
+// Global helper for clean PDF / Print export with optimized document title
+if (typeof window !== 'undefined') {
+  window.printTicketPass = function(ticketId, attendeeName) {
+    const originalTitle = document.title;
+    const sanitizedName = (attendeeName || 'Attendee').replace(/[^a-zA-Z0-9]/g, '_');
+    document.title = `VAMS_Pass_${sanitizedName}_${ticketId}`;
+    window.print();
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1500);
+  };
 }
