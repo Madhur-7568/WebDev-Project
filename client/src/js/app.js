@@ -107,15 +107,17 @@ class VAMSApp {
 
     let events = this.store.getEvents().filter(e => e.status === 'published');
 
-    if (this.activeCategoryFilter !== 'All') {
-      events = events.filter(e => e.category === this.activeCategoryFilter);
+    if (this.activeCategoryFilter && this.activeCategoryFilter !== 'All') {
+      const targetCat = this.activeCategoryFilter.trim().toLowerCase();
+      events = events.filter(e => (e.category || '').trim().toLowerCase() === targetCat);
     }
 
     if (this.searchQuery.trim()) {
       const q = this.searchQuery.toLowerCase();
       events = events.filter(e => 
-        e.title.toLowerCase().includes(q) || 
-        e.venue.toLowerCase().includes(q) || 
+        (e.title || '').toLowerCase().includes(q) || 
+        (e.category || '').toLowerCase().includes(q) || 
+        (e.venue || '').toLowerCase().includes(q) || 
         (e.tags && e.tags.some(t => t.toLowerCase().includes(q)))
       );
     }
