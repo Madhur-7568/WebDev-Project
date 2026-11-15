@@ -2066,6 +2066,32 @@ class VAMSApp {
 
         this.unmountModal('modal-booking');
         this.showToast(`🎉 Success! Seat(s) ${selectedSeatsArray.join(', ')} booked for ${attendee.name}!`, 'success');
+
+        // Automated Email Notification dispatch (Feature 6: Nodemailer Integration)
+        fetch('http://localhost:5000/api/notifications/send-ticket-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: attendee.email,
+            name: attendee.name,
+            ticketId: attendee.ticketId,
+            eventTitle: event.title,
+            venue: event.venue,
+            date: event.date,
+            seats: attendee.seats,
+            seatSection: attendee.seatSection
+          })
+        }).then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              this.showToast(`📧 Confirmation email sent to ${attendee.email}!`, 'success');
+              if (data.previewUrl) {
+                console.log('Ethereal Email Web Preview:', data.previewUrl);
+              }
+            }
+          })
+          .catch(err => console.log('Notification server info:', err.message));
+
         this.openTicketPassModal(attendee.ticketId);
         this.renderPublicEvents();
       };

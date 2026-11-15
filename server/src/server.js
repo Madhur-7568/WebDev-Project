@@ -36,6 +36,7 @@ app.use((req, res, next) => {
 // API Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/events', require('./routes/eventRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

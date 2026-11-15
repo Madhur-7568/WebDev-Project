@@ -1,4 +1,5 @@
 const dataStore = require('../models/dataStore');
+const { sendTicketConfirmationEmail } = require('../services/emailService');
 
 // @desc    Get all events with optional filters & search
 // @route   GET /api/events
@@ -155,6 +156,18 @@ const registerForEvent = async (req, res, next) => {
     if (!result.success) {
       return res.status(400).json(result);
     }
+
+    // Trigger confirmation email notification asynchronously
+    sendTicketConfirmationEmail({
+      email: req.user.email,
+      name: req.user.name,
+      ticketId: result.ticketId,
+      eventTitle: result.event.title,
+      venue: result.event.venue,
+      date: result.event.date,
+      seats: ['General Admission'],
+      seatSection: 'Standard'
+    }).catch(err => console.warn('Email dispatch warning:', err.message));
 
     res.status(200).json({
       success: true,

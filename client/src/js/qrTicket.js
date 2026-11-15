@@ -102,6 +102,9 @@ export class QRTicketService {
           <button type="button" class="btn btn-navy" onclick="window.printTicketPass('${attendee.ticketId}', '${attendee.name.replace(/'/g, '')}')">
             🖨️ Print / Save as PDF Pass
           </button>
+          <button type="button" class="btn btn-outline" onclick="window.sendTicketEmail('${attendee.ticketId}')">
+            ✉️ Email Me Pass
+          </button>
           <button type="button" class="btn btn-outline" onclick="navigator.clipboard.writeText('${attendee.ticketId}'); window.vamsApp?.showToast('Ticket ID copied to clipboard: ${attendee.ticketId}', 'success');">
             📋 Copy Ticket ID
           </button>
@@ -161,5 +164,44 @@ if (typeof window !== 'undefined') {
     setTimeout(() => {
       document.title = originalTitle;
     }, 1500);
+  };
+
+  window.sendTicketEmail = async function(ticketId) {
+    try {
+      const store = window.vamsApp?.store;
+      if (!store) return;
+      const attendee = store.getAttendees().find(a => a.ticketId === ticketId);
+      if (!attendee) return;
+      const event = store.getEventById(attendee.eventId);
+
+      window.vamsApp?.showToast(`📧 Sending email pass to ${attendee.email}...`, 'info');
+
+      const res = await fetch('http://localhost:5000/api/notifications/send-ticket-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: attendee.email,
+          name: attendee.name,
+          ticketId: attendee.ticketId,
+          eventTitle: event ? event.title : 'VAMS Campus Event',
+          venue: event ? event.venue : 'Main Campus',
+          date: event ? event.date : new Date().toISOString(),
+          seats: attendee.seats || [],
+          seatSection: attendee.seatSection || 'General'
+        })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        window.vamsApp?.showToast(`✅ Pass emailed to ${attendee.email}!`, 'success');
+        if (data.previewUrl) {
+          window.open(data.previewUrl, '_blank');
+        }
+      } else {
+        window.vamsApp?.showToast('Email error: ' + (data.message || 'Server error'), 'error');
+      }
+    } catch (err) {
+      window.vamsApp?.showToast('Backend offline. Make sure port 5000 is running.', 'error');
+    }
   };
 }
