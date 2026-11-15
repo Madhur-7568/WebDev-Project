@@ -861,3 +861,91 @@
   100% { top: 10%; }
 }
 
+/* ==========================================================================
+   OFFICIAL TICKET PASS PRINT & PDF EXPORT STYLES (@media print)
+   ========================================================================== */
+@media print {
+  /* Hide whole app, overlays, navbars, and interactive buttons */
+  body * {
+    visibility: hidden !important;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #14213d !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Make only the ticket pass card visible and perfectly centered */
+  #printable-ticket, #printable-ticket * {
+    visibility: visible !important;
+  }
+
+  #printable-ticket {
+    position: absolute !important;
+    left: 50% !important;
+    top: 20px !important;
+    transform: translateX(-50%) !important;
+    width: 92% !important;
+    max-width: 620px !important;
+    background: #ffffff !important;
+    color: #14213d !important;
+    border: 2px dashed #14213d !important;
+    border-radius: 12px !important;
+    padding: 24px !important;
+    box-shadow: none !important;
+    margin: 0 auto !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Hide print buttons and modal chrome */
+  .hide-on-print,
+  .modal-header,
+  .modal-close,
+  .site-header,
+  .app-sidebar,
+  .toast-container,
+  .role-switcher-dropdown {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  .modal-overlay {
+    position: static !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+
+  .modal-dialog {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .modal-body {
+    padding: 0 !important;
+  }
+
+  .ticket-seat-banner {
+    background: #f1f5f9 !important;
+    border: 2px solid #4338ca !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .qr-code-holder {
+    border: 1px solid #cbd5e1 !important;
+  }
+}
+
