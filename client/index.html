@@ -242,29 +242,6 @@
               Try Interactive Seating 💺
             </button>
           </div>
-
-          <!-- Quick Hero Search Bar -->
-          <div class="hero-search-card">
-            <span style="font-size: 1.1rem; color: var(--color-text-muted);">🔍</span>
-            <input 
-              type="text" 
-              class="hero-search-input" 
-              placeholder="Search by event title, hackathon, venue, or society..." 
-              id="hero-search-input"
-              oninput="window.vamsApp.searchQuery = this.value; window.vamsApp.renderPublicEvents();"
-            />
-            <select 
-              class="hero-search-category"
-              onchange="window.vamsApp.activeCategoryFilter = this.value; window.vamsApp.renderCategoryPills(); window.vamsApp.renderPublicEvents();"
-            >
-              <option value="All">All Categories</option>
-              <option value="Technical">Technical</option>
-              <option value="Cultural">Cultural</option>
-              <option value="Workshop">Workshop</option>
-              <option value="Sports">Sports</option>
-              <option value="Gaming">Gaming</option>
-            </select>
-          </div>
         </div>
       </section>
 
@@ -280,7 +257,7 @@
           </div>
 
           <!-- Category Pills -->
-          <div class="filter-pills-wrap" id="landing-category-pills"></div>
+          <div class="filter-pills-wrap" id="landing-category-pills" style="display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 1.5rem auto 2rem;"></div>
 
           <!-- Event Grid -->
           <div class="events-grid" id="public-events-grid"></div>
