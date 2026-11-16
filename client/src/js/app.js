@@ -10,6 +10,7 @@ import { SeatingManager } from './seating.js';
 import { detectScheduleConflicts } from './conflictDetector.js';
 import { QRTicketService } from './qrTicket.js';
 import { renderDashboardCharts } from './charts.js';
+import { reviewsManager } from './reviews.js';
 
 class VAMSApp {
   constructor() {
@@ -269,6 +270,7 @@ class VAMSApp {
       'volunteers': ['Student Volunteer Force', 'Duty scheduling, check-in status, and logistics allocation.'],
       'budget': ['Event Financials & Budget Tracker', 'Revenue, estimated vs actual expenses, and profit/loss calculation.'],
       'analytics': ['Reports & Predictive Analytics', 'Data visualizations, trends, and exportable CSV reports.'],
+      'reviews': ['Event Reviews & Campus Feedback', 'Attendee star ratings, post-event sentiment, and organizer insights.'],
       'notifications': ['Notification Center', 'Real-time alerts, milestones, and system warnings.'],
       'settings': ['System Settings & Demo Data', 'Dark/light mode switcher, role switcher, and factory data reset.']
     };
@@ -322,6 +324,9 @@ class VAMSApp {
         break;
       case 'notifications':
         this.renderDashboardNotifications(contentArea);
+        break;
+      case 'reviews':
+        reviewsManager.render(contentArea);
         break;
       case 'settings':
         this.renderDashboardSettings(contentArea);
