@@ -1,3 +1,4 @@
+import { authManager } from './auth.js';
 /**
  * VAMS Smart Event Management — Master Application Controller
  * Handles Public Website, SaaS Dashboard, Interactive Seating,
@@ -2482,3 +2483,17 @@ class VAMSApp {
 // Instantiate and attach to window
 window.vamsApp = new VAMSApp();
 
+
+// Expose Auth Manager globally and sync header button on load
+window.vamsAuth = authManager;
+window.addEventListener('DOMContentLoaded', () => {
+  authManager.syncAppRoleAndHeader();
+  if (window.location.hash === '#login') {
+    authManager.openAuthPage('login');
+  }
+});
+window.addEventListener('hashchange', () => {
+  if (window.location.hash === '#login') {
+    authManager.openAuthPage('login');
+  }
+});
