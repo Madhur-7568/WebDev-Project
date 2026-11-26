@@ -26,6 +26,7 @@ class VAMSApp {
 
   init() {
     this.applyTheme(localStorage.getItem('vams_active_theme') || 'light');
+    this.initAuthGate();
     this.bindGlobalEvents();
     this.renderPublicLanding();
     this.updateUserRoleBadge();
@@ -37,7 +38,187 @@ class VAMSApp {
     this.handleHashRoute();
   }
 
+  isAuthenticated() {
+    return Boolean(localStorage.getItem('vams_auth_token'));
+  }
+
+  showAuthGate() {
+    this.currentView = 'auth';
+    const authEl = document.getElementById('view-auth');
+    const landingEl = document.getElementById('view-landing');
+    const dashEl = document.getElementById('view-dashboard');
+    if (authEl) authEl.style.display = 'flex';
+    if (landingEl) landingEl.style.display = 'none';
+    if (dashEl) dashEl.style.display = 'none';
+  }
+
+  logout() {
+    localStorage.removeItem('vams_auth_token');
+    this.showAuthGate();
+    this.showToast('Signed out successfully. Please sign in to continue.', 'info');
+  }
+
+  initAuthGate() {
+    const tabSignIn = document.getElementById('tab-btn-signin');
+    const tabSignUp = document.getElementById('tab-btn-signup');
+    const formSignIn = document.getElementById('form-auth-signin');
+    const formSignUp = document.getElementById('form-auth-signup');
+    const alertBox = document.getElementById('auth-alert-box');
+
+    const showAlert = (msg, type = 'error') => {
+      if (!alertBox) return;
+      alertBox.className = `auth-alert ${type}`;
+      alertBox.textContent = msg;
+      alertBox.style.display = 'block';
+    };
+
+    const hideAlert = () => {
+      if (alertBox) alertBox.style.display = 'none';
+    };
+
+    if (tabSignIn && tabSignUp && formSignIn && formSignUp) {
+      tabSignIn.addEventListener('click', () => {
+        tabSignIn.classList.add('active');
+        tabSignUp.classList.remove('active');
+        formSignIn.style.display = 'block';
+        formSignUp.style.display = 'none';
+        hideAlert();
+      });
+
+      tabSignUp.addEventListener('click', () => {
+        tabSignUp.classList.add('active');
+        tabSignIn.classList.remove('active');
+        formSignUp.style.display = 'block';
+        formSignIn.style.display = 'none';
+        hideAlert();
+      });
+    }
+
+    // Password visibility toggle
+    document.querySelectorAll('[data-toggle-pass]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-toggle-pass');
+        const input = document.getElementById(targetId);
+        if (!input) return;
+        input.type = input.type === 'password' ? 'text' : 'password';
+        btn.textContent = input.type === 'password' ? '👁️' : '🙈';
+      });
+    });
+
+    const completeAuth = (data) => {
+      localStorage.setItem('vams_auth_token', data.token);
+      if (data.user) {
+        const initials = (data.user.name || 'VU').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+        this.store.setCurrentUser({
+          id: data.user.id,
+          name: data.user.name,
+          email: data.user.email,
+          role: data.user.role || 'organizer',
+          avatar: initials
+        });
+      }
+      this.updateUserRoleBadge();
+      const authEl = document.getElementById('view-auth');
+      if (authEl) authEl.style.display = 'none';
+      this.showLanding();
+      this.showToast(`Welcome, ${data.user?.name || 'User'}!`, 'success');
+    };
+
+    const submitLogin = async (email, password) => {
+      hideAlert();
+      let res, data;
+      try {
+        res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        data = await res.json();
+      } catch (err) {
+        showAlert('Could not reach server. Please make sure backend is running.', 'error');
+        return;
+      }
+      if (!res.ok || !data.success) {
+        showAlert(data.message || 'Invalid email or password.', 'error');
+        return;
+      }
+      completeAuth(data);
+    };
+
+    if (formSignIn) {
+      formSignIn.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = document.getElementById('signin-email').value.trim();
+        const password = document.getElementById('signin-password').value;
+        submitLogin(email, password);
+      });
+    }
+
+    // Quick Demo Login buttons
+    const demoOrgBtn = document.getElementById('btn-demo-organizer');
+    if (demoOrgBtn) {
+      demoOrgBtn.addEventListener('click', () => {
+        document.getElementById('signin-email').value = 'organizer@vams.edu';
+        document.getElementById('signin-password').value = 'password123';
+        submitLogin('organizer@vams.edu', 'password123');
+      });
+    }
+
+    const demoAttBtn = document.getElementById('btn-demo-attendee');
+    if (demoAttBtn) {
+      demoAttBtn.addEventListener('click', () => {
+        document.getElementById('signin-email').value = 'rahul@vams.edu';
+        document.getElementById('signin-password').value = 'password123';
+        submitLogin('rahul@vams.edu', 'password123');
+      });
+    }
+
+    if (formSignUp) {
+      formSignUp.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideAlert();
+        const name = document.getElementById('signup-name').value.trim();
+        const email = document.getElementById('signup-email').value.trim();
+        const role = document.getElementById('signup-role').value;
+        const password = document.getElementById('signup-password').value;
+
+        let res, data;
+        try {
+          res = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, role, password })
+          });
+          data = await res.json();
+        } catch (err) {
+          showAlert('Could not reach server. Please make sure backend is running.', 'error');
+          return;
+        }
+        if (!res.ok || !data.success) {
+          showAlert(data.message || 'Registration failed.', 'error');
+          return;
+        }
+        completeAuth(data);
+      });
+    }
+
+    // Logout buttons across navbar & drawer
+    document.querySelectorAll('[data-logout-btn]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const navDrawer = document.getElementById('nav-drawer');
+        const drawerOverlay = document.getElementById('nav-drawer-overlay');
+        if (navDrawer) navDrawer.classList.remove('active');
+        if (drawerOverlay) drawerOverlay.classList.remove('active');
+        this.logout();
+      });
+    });
+  }
+
   handleHashRoute() {
+    if (!this.isAuthenticated()) {
+      this.showAuthGate();
+      return;
+    }
     const hash = window.location.hash.replace('#', '') || 'landing';
     if (hash.startsWith('dashboard')) {
       const parts = hash.split('/');
@@ -49,7 +230,13 @@ class VAMSApp {
   }
 
   showLanding() {
+    if (!this.isAuthenticated()) {
+      this.showAuthGate();
+      return;
+    }
     this.currentView = 'landing';
+    const authEl = document.getElementById('view-auth');
+    if (authEl) authEl.style.display = 'none';
     document.getElementById('view-landing').style.display = 'block';
     document.getElementById('view-dashboard').style.display = 'none';
     window.location.hash = 'landing';
@@ -57,8 +244,14 @@ class VAMSApp {
   }
 
   showDashboard(tab = 'overview') {
+    if (!this.isAuthenticated()) {
+      this.showAuthGate();
+      return;
+    }
     this.currentView = 'dashboard';
     this.currentDashboardTab = tab;
+    const authEl = document.getElementById('view-auth');
+    if (authEl) authEl.style.display = 'none';
     document.getElementById('view-landing').style.display = 'none';
     document.getElementById('view-dashboard').style.display = 'flex';
     window.location.hash = `dashboard/${tab}`;

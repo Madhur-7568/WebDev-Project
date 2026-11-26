@@ -24,9 +24,100 @@
   </head>
   <body>
     <!-- =====================================================================
+         VIEW 0: START LOGIN GATE (Shown First Until Authenticated)
+         ===================================================================== -->
+    <div id="view-auth" class="auth-gate-screen">
+      <div class="auth-gate-card">
+        <div class="auth-gate-brand">
+          <img src="/vams-logo.png" alt="VAMS Logo" class="auth-gate-logo" />
+          <div>
+            <h1 class="auth-gate-title">VAMS</h1>
+            <p class="auth-gate-subtitle">Smart Event Management</p>
+          </div>
+        </div>
+
+        <div class="auth-tabs">
+          <button type="button" class="auth-tab-btn active" id="tab-btn-signin">Sign In</button>
+          <button type="button" class="auth-tab-btn" id="tab-btn-signup">Create Account</button>
+        </div>
+
+        <div id="auth-alert-box" class="auth-alert" style="display: none;"></div>
+
+        <!-- Sign In Form -->
+        <form id="form-auth-signin" class="auth-form">
+          <div class="form-group">
+            <label class="form-label" for="signin-email">Email Address</label>
+            <input type="email" id="signin-email" class="form-control" placeholder="organizer@vams.edu" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="signin-password">Password</label>
+            <div class="password-input-wrap">
+              <input type="password" id="signin-password" class="form-control" placeholder="Enter your password" required />
+              <button type="button" class="password-toggle-btn" data-toggle-pass="signin-password" title="Show/Hide Password">👁️</button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="btn-signin-submit" style="width: 100%; justify-content: center; padding: 12px; font-size: 0.95rem;">
+            Sign In to VAMS →
+          </button>
+
+          <div class="auth-demo-box">
+            <div class="auth-demo-label">Quick Demo Accounts (PostgreSQL Seeded):</div>
+            <div class="auth-demo-actions">
+              <button type="button" class="btn btn-outline btn-sm" id="btn-demo-organizer">👑 Organizer Demo</button>
+              <button type="button" class="btn btn-outline btn-sm" id="btn-demo-attendee">🎓 Attendee Demo</button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Sign Up Form -->
+        <form id="form-auth-signup" class="auth-form" style="display: none;">
+          <div class="form-group">
+            <label class="form-label" for="signup-name">Full Name</label>
+            <input type="text" id="signup-name" class="form-control" placeholder="e.g. Ananya Singh" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="signup-email">Email Address</label>
+            <input type="email" id="signup-email" class="form-control" placeholder="ananya@vams.edu" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="signup-role">Account Role</label>
+            <select id="signup-role" class="form-select">
+              <option value="organizer">👑 Event Organizer</option>
+              <option value="attendee">🎓 Student Attendee</option>
+              <option value="venue_manager">🏛️ Venue Manager</option>
+              <option value="staff">🎫 Event Staff / QR</option>
+              <option value="superadmin">⚡ Super Admin</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="signup-password">Password <span class="optional">(min 6 chars)</span></label>
+            <div class="password-input-wrap">
+              <input type="password" id="signup-password" class="form-control" placeholder="Create a password" minlength="6" required />
+              <button type="button" class="password-toggle-btn" data-toggle-pass="signup-password" title="Show/Hide Password">👁️</button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="btn-signup-submit" style="width: 100%; justify-content: center; padding: 12px; font-size: 0.95rem;">
+            Create Account & Enter →
+          </button>
+        </form>
+
+        <div class="auth-gate-footer">
+          <span>🐘 Secured with PostgreSQL Persistence</span>
+          <button type="button" class="btn btn-outline btn-sm" data-toggle-theme title="Toggle Theme">🌓 Theme</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- =====================================================================
          VIEW 1: PUBLIC CONVERSION WEBSITE (Section 4.A)
          ===================================================================== -->
-    <div id="view-landing">
+    <div id="view-landing" style="display: none;">
       <!-- Public Navbar -->
       <header class="site-header">
         <div class="container header-container">
@@ -77,6 +168,10 @@
                 <button type="button" class="command-item" style="width: 100%; border: none; background: none; font-size: 0.8rem;" data-role-switch="attendee" onclick="document.getElementById('role-menu-dropdown').classList.remove('active')">🎓 Student Attendee</button>
               </div>
             </div>
+
+            <button type="button" class="btn btn-outline btn-sm" data-logout-btn title="Sign Out">
+              🚪 Logout
+            </button>
           </div>
         </div>
       </header>
@@ -203,9 +298,12 @@
           </div>
         </div>
 
-        <div class="nav-drawer-footer">
+        <div class="nav-drawer-footer" style="display: flex; flex-direction: column; gap: 8px;">
           <button type="button" class="btn btn-outline btn-sm" data-toggle-theme style="width: 100%; justify-content: center; gap: 8px;">
             <span>🌓 Switch Theme (Dark / Light)</span>
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" data-logout-btn style="width: 100%; justify-content: center; gap: 8px; color: var(--color-danger); border-color: rgba(239,68,68,0.3);">
+            <span>🚪 Sign Out / Switch User</span>
           </button>
         </div>
       </aside>

@@ -1,4 +1,26 @@
-const dataStore = require('../models/dataStore');
+const { query } = require('../config/db');
+const { syncTableToCsv } = require('../db/csvSync');
+
+const mapEventRow = (row) => ({
+  id: row.id,
+  title: row.title,
+  description: row.description,
+  category: row.category,
+  venueId: row.venue_id,
+  venue: row.venue,
+  date: row.date,
+  endDate: row.end_date,
+  capacity: Number(row.capacity),
+  registeredCount: Number(row.registered_count || 0),
+  price: Number(row.price || 0),
+  isPaid: Boolean(row.is_paid),
+  status: row.status,
+  visibility: row.visibility,
+  image: row.image,
+  organizerId: row.organizer_id,
+  organizerName: row.organizer_name,
+  tags: Array.isArray(row.tags) ? row.tags : []
+});
 
 // @desc    Get all events with optional filters & search
 // @route   GET /api/events
@@ -6,7 +28,25 @@ const dataStore = require('../models/dataStore');
 const getEvents = async (req, res, next) => {
   try {
     const { category, search, status } = req.query;
-    const events = dataStore.getAllEvents({ category, search, status });
+    const conditions = [];
+    const params = [];
+
+    if (category && category !== 'All') {
+      params.push(category.toLowerCase());
+      conditions.push(`LOWER(category) = $${params.length}`);
+    }
+    if (status) {
+      params.push(status.toLowerCase());
+      conditions.push(`LOWER(status) = $${params.length}`);
+    }
+    if (search) {
+      params.push(`%${search.toLowerCase()}%`);
+      conditions.push(`(LOWER(title) LIKE $${params.length} OR LOWER(description) LIKE $${params.length} OR LOWER(venue) LIKE $${params.length})`);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const result = await query(`SELECT * FROM events ${whereClause} ORDER BY date ASC`, params);
+    const events = result.rows.map(mapEventRow);
 
     res.status(200).json({
       success: true,
@@ -23,9 +63,8 @@ const getEvents = async (req, res, next) => {
 // @access  Public
 const getEventById = async (req, res, next) => {
   try {
-    const event = dataStore.findEventById(req.params.id);
-
-    if (!event) {
+    const result = await query('SELECT * FROM events WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) {
       return res.status(404).json({
         success: false,
         message: `Event not found with ID ${req.params.id}`
@@ -34,7 +73,7 @@ const getEventById = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      event
+      event: mapEventRow(result.rows[0])
     });
   } catch (error) {
     next(error);
@@ -43,36 +82,53 @@ const getEventById = async (req, res, next) => {
 
 // @desc    Create a new event
 // @route   POST /api/events
-// @access  Private (organizer, admin)
+// @access  Public / Demo SaaS & Organizer
 const createEvent = async (req, res, next) => {
   try {
-    const { title, description, category, venue, date, endDate, capacity, tags, image } = req.body;
+    const { id, title, description, category, venueId, venue, date, endDate, capacity, price, isPaid, status, visibility, tags, image, organizerName } = req.body;
 
-    if (!title || !description || !category || !venue || !date) {
+    if (!title || !category || !date) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide all required fields: title, description, category, venue, and date.'
+        message: 'Please provide required fields: title, category, and date.'
       });
     }
 
-    const newEvent = dataStore.createEvent({
-      title,
-      description,
-      category,
-      venue,
-      date: new Date(date).toISOString(),
-      endDate: endDate ? new Date(endDate).toISOString() : null,
-      capacity: Number(capacity) || 100,
-      tags: Array.isArray(tags) ? tags : (tags ? tags.split(',').map(t => t.trim()) : []),
-      image: image || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=60',
-      organizerId: req.user.id,
-      organizerName: req.user.name
-    });
+    const eventId = id || `evt_${Date.now()}`;
+    const parsedPrice = Number(price) || 0;
+    const parsedTags = Array.isArray(tags) ? tags : (tags ? String(tags).split(',').map(t => t.trim()) : []);
+
+    const result = await query(
+      `INSERT INTO events (id, title, description, category, venue_id, venue, date, end_date, capacity, registered_count, price, is_paid, status, visibility, image, organizer_id, organizer_name, tags)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 0, $10, $11, $12, $13, $14, $15, $16, $17::jsonb)
+       RETURNING *`,
+      [
+        eventId,
+        title,
+        description || '',
+        category,
+        venueId || null,
+        venue || 'Campus Hall',
+        date,
+        endDate || date,
+        Number(capacity) || 100,
+        parsedPrice,
+        isPaid !== undefined ? Boolean(isPaid) : parsedPrice > 0,
+        status || 'published',
+        visibility || 'public',
+        image || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800',
+        req.user ? req.user.id : 'usr_org_1',
+        organizerName || (req.user ? req.user.name : 'Technical Society'),
+        JSON.stringify(parsedTags)
+      ]
+    );
+
+    await syncTableToCsv('events', query);
 
     res.status(201).json({
       success: true,
-      message: 'Event created successfully!',
-      event: newEvent
+      message: 'Event created and saved to PostgreSQL!',
+      event: mapEventRow(result.rows[0])
     });
   } catch (error) {
     next(error);
@@ -81,32 +137,67 @@ const createEvent = async (req, res, next) => {
 
 // @desc    Update an existing event
 // @route   PUT /api/events/:id
-// @access  Private (organizer who created it, or admin)
+// @access  Public / Demo SaaS & Organizer
 const updateEvent = async (req, res, next) => {
   try {
-    const event = dataStore.findEventById(req.params.id);
-
-    if (!event) {
+    const existingRes = await query('SELECT * FROM events WHERE id = $1', [req.params.id]);
+    if (existingRes.rows.length === 0) {
       return res.status(404).json({
         success: false,
         message: `Event not found with ID ${req.params.id}`
       });
     }
 
-    // Authorization check
-    if (event.organizerId !== req.user.id && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to edit this event.'
-      });
-    }
+    const curr = existingRes.rows[0];
+    const b = req.body;
+    const parsedPrice = b.price !== undefined ? Number(b.price) : Number(curr.price);
+    const parsedTags = b.tags !== undefined
+      ? (Array.isArray(b.tags) ? b.tags : String(b.tags).split(',').map(t => t.trim()))
+      : curr.tags;
 
-    const updated = dataStore.updateEvent(req.params.id, req.body);
+    const result = await query(
+      `UPDATE events SET
+        title = $1,
+        description = $2,
+        category = $3,
+        venue_id = $4,
+        venue = $5,
+        date = $6,
+        end_date = $7,
+        capacity = $8,
+        price = $9,
+        is_paid = $10,
+        status = $11,
+        image = $12,
+        organizer_name = $13,
+        tags = $14::jsonb
+       WHERE id = $15
+       RETURNING *`,
+      [
+        b.title ?? curr.title,
+        b.description ?? curr.description,
+        b.category ?? curr.category,
+        b.venueId !== undefined ? b.venueId : curr.venue_id,
+        b.venue ?? curr.venue,
+        b.date ?? curr.date,
+        b.endDate ?? curr.end_date,
+        b.capacity !== undefined ? Number(b.capacity) : curr.capacity,
+        parsedPrice,
+        b.isPaid !== undefined ? Boolean(b.isPaid) : parsedPrice > 0,
+        b.status ?? curr.status,
+        b.image ?? curr.image,
+        b.organizerName ?? curr.organizer_name,
+        JSON.stringify(parsedTags || []),
+        req.params.id
+      ]
+    );
+
+    await syncTableToCsv('events', query);
 
     res.status(200).json({
       success: true,
-      message: 'Event updated successfully!',
-      event: updated
+      message: 'Event updated in PostgreSQL!',
+      event: mapEventRow(result.rows[0])
     });
   } catch (error) {
     next(error);
@@ -115,70 +206,23 @@ const updateEvent = async (req, res, next) => {
 
 // @desc    Delete an event
 // @route   DELETE /api/events/:id
-// @access  Private (organizer who created it, or admin)
+// @access  Public / Demo SaaS & Organizer
 const deleteEvent = async (req, res, next) => {
   try {
-    const event = dataStore.findEventById(req.params.id);
-
-    if (!event) {
+    const result = await query('DELETE FROM events WHERE id = $1 RETURNING id', [req.params.id]);
+    if (result.rows.length === 0) {
       return res.status(404).json({
         success: false,
         message: `Event not found with ID ${req.params.id}`
       });
     }
 
-    if (event.organizerId !== req.user.id && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to delete this event.'
-      });
-    }
-
-    dataStore.deleteEvent(req.params.id);
+    await syncTableToCsv('events', query);
 
     res.status(200).json({
       success: true,
-      message: 'Event deleted successfully.'
+      message: 'Event deleted from PostgreSQL.'
     });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Register / RSVP for an event
-// @route   POST /api/events/:id/register
-// @access  Private (logged-in user)
-const registerForEvent = async (req, res, next) => {
-  try {
-    const result = dataStore.registerUserForEvent(req.params.id, req.user.id);
-
-    if (!result.success) {
-      return res.status(400).json(result);
-    }
-
-    res.status(200).json({
-      success: true,
-      message: result.message,
-      ticketId: result.ticketId,
-      event: result.event
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Cancel RSVP for an event
-// @route   DELETE /api/events/:id/register
-// @access  Private (logged-in user)
-const cancelRegistration = async (req, res, next) => {
-  try {
-    const result = dataStore.cancelUserRegistration(req.params.id, req.user.id);
-
-    if (!result.success) {
-      return res.status(400).json(result);
-    }
-
-    res.status(200).json(result);
   } catch (error) {
     next(error);
   }
@@ -189,10 +233,17 @@ const cancelRegistration = async (req, res, next) => {
 // @access  Public
 const getStats = async (req, res, next) => {
   try {
-    const stats = dataStore.getStats();
+    const eventStats = await query('SELECT COUNT(*)::int AS total_events, COALESCE(SUM(registered_count), 0)::int AS total_rsvps FROM events');
+    const bookingStats = await query('SELECT COUNT(*)::int AS total_bookings, COALESCE(SUM(total_amount), 0)::numeric AS total_revenue FROM bookings');
+
     res.status(200).json({
       success: true,
-      stats
+      stats: {
+        totalEvents: eventStats.rows[0].total_events,
+        totalRsvps: eventStats.rows[0].total_rsvps,
+        totalBookings: bookingStats.rows[0].total_bookings,
+        totalRevenue: Number(bookingStats.rows[0].total_revenue)
+      }
     });
   } catch (error) {
     next(error);
@@ -205,8 +256,5 @@ module.exports = {
   createEvent,
   updateEvent,
   deleteEvent,
-  registerForEvent,
-  cancelRegistration,
   getStats
 };
-

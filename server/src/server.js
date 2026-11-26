@@ -1,29 +1,24 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const path = require('path');
-const { connectDB } = require('./config/db');
+const { connectDB, closeDB, getDbMode } = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
 
-// Load environment variables
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Connect to Database (dual-mode: MongoDB or built-in file/memory store)
-connectDB();
-
 // Middleware
 app.use(cors({
-  origin: '*', // Allow frontend dev server
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Request Logger (Development friendly)
+// Request Logger
 app.use((req, res, next) => {
   const start = Date.now();
   res.on('finish', () => {
@@ -36,33 +31,56 @@ app.use((req, res, next) => {
 // API Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/events', require('./routes/eventRoutes'));
+app.use('/api/venues', require('./routes/venueRoutes'));
+app.use('/api/bookings', require('./routes/bookingRoutes'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'online',
+    database: 'PostgreSQL',
+    dbMode: getDbMode(),
     timestamp: new Date().toISOString(),
-    service: 'CampusSync Backend API',
-    version: '1.0.0'
+    service: 'VAMS Smart Event Management API',
+    version: '2.0.0'
   });
 });
 
 // Root API Greeting
 app.get('/', (req, res) => {
-  res.send('<h1>CampusSync API is Running 🚀</h1><p>Visit <code>/api/events</code> or <code>/api/health</code></p>');
+  res.send(`<h1>VAMS PostgreSQL API is Running 🚀</h1><p>Database Mode: <b>${getDbMode()}</b></p><p>Visit <code>/api/events</code>, <code>/api/venues</code>, <code>/api/bookings</code>, or <code>/api/health</code></p>`);
 });
 
 // Error handling middleware
 app.use(errorHandler);
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`\n==================================================`);
-  console.log(`🚀 CampusSync Server is running on: http://localhost:${PORT}`);
-  console.log(`📡 API Endpoints available at: http://localhost:${PORT}/api`);
-  console.log(`🎓 WebDev Lab Project ready for team collaboration`);
-  console.log(`==================================================\n`);
-});
+// Initialize PostgreSQL and start Express server
+const startServer = async () => {
+  try {
+    await connectDB();
+    const server = app.listen(PORT, () => {
+      console.log(`\n==================================================`);
+      console.log(`🚀 VAMS Server running on: http://localhost:${PORT}`);
+      console.log(`🐘 PostgreSQL Mode: ${getDbMode()}`);
+      console.log(`📡 API Endpoints: http://localhost:${PORT}/api`);
+      console.log(`==================================================\n`);
+    });
+
+    const shutdown = async () => {
+      server.close();
+      await closeDB();
+      process.exit(0);
+    };
+    process.on('SIGINT', shutdown);
+    process.on('SIGTERM', shutdown);
+  } catch (err) {
+    console.error('❌ Failed to initialize PostgreSQL database:', err);
+    process.exit(1);
+  }
+};
+
+if (require.main === module) {
+  startServer();
+}
 
 module.exports = app;
-

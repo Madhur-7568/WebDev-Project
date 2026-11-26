@@ -1,10 +1,10 @@
 const jwt = require('jsonwebtoken');
-const dataStore = require('../models/dataStore');
+const { query } = require('../config/db');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_college_lab_2026';
 
 /**
- * Protect routes: verify JWT Bearer token
+ * Protect routes: verify JWT Bearer token against PostgreSQL users table
  */
 const protect = async (req, res, next) => {
   let token;
@@ -22,18 +22,19 @@ const protect = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const user = dataStore.findUserById(decoded.id);
+    const result = await query(
+      'SELECT id, name, email, role, college_id AS "collegeId", department, created_at AS "createdAt" FROM users WHERE id = $1',
+      [decoded.id]
+    );
 
-    if (!user) {
+    if (result.rows.length === 0) {
       return res.status(401).json({
         success: false,
         message: 'The user belonging to this token no longer exists.'
       });
     }
 
-    // Attach user to request object (exclude passwordHash)
-    const { passwordHash, ...safeUser } = user;
-    req.user = safeUser;
+    req.user = result.rows[0];
     next();
   } catch (error) {
     return res.status(401).json({
@@ -62,4 +63,3 @@ module.exports = {
   protect,
   authorize
 };
-

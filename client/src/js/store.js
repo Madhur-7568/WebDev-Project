@@ -312,6 +312,46 @@ export class VAMSStore {
     if (!localStorage.getItem(STORAGE_KEYS.EVENTS)) {
       this.resetAll();
     }
+    this.syncFromPostgres();
+  }
+
+  async syncFromPostgres() {
+    try {
+      const [evRes, venRes, bkRes] = await Promise.all([
+        fetch('/api/events').then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch('/api/venues').then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch('/api/bookings').then(r => r.ok ? r.json() : null).catch(() => null)
+      ]);
+
+      if (evRes && evRes.success && Array.isArray(evRes.events) && evRes.events.length > 0) {
+        this.set(STORAGE_KEYS.EVENTS, evRes.events);
+      }
+      if (venRes && venRes.success && Array.isArray(venRes.venues) && venRes.venues.length > 0) {
+        this.set(STORAGE_KEYS.VENUES, venRes.venues);
+      }
+      if (bkRes && bkRes.success && Array.isArray(bkRes.bookings)) {
+        const seatMap = this.get(STORAGE_KEYS.EVENT_SEATS) || {};
+        bkRes.bookings.forEach(b => {
+          if (b.eventId && b.seatNumber) {
+            const existing = seatMap[b.eventId] || [];
+            if (!existing.includes(b.seatNumber)) {
+              seatMap[b.eventId] = [...existing, b.seatNumber];
+            }
+          }
+        });
+        this.set(STORAGE_KEYS.EVENT_SEATS, seatMap);
+      }
+    } catch (err) {
+      console.warn('Background PostgreSQL sync skipped:', err.message);
+    }
+  }
+
+  _apiSync(endpoint, method, payload) {
+    fetch(endpoint, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: payload ? JSON.stringify(payload) : undefined
+    }).catch(err => console.warn(`PostgreSQL sync failed [${method} ${endpoint}]:`, err.message));
   }
 
   resetAll() {
@@ -360,6 +400,7 @@ export class VAMSStore {
       const index = events.findIndex(e => e.id === eventData.id);
       if (index !== -1) {
         events[index] = { ...events[index], ...eventData, updatedAt: new Date().toISOString() };
+        this._apiSync(`/api/events/${eventData.id}`, 'PUT', events[index]);
       }
     } else {
       const newEvent = {
@@ -370,6 +411,7 @@ export class VAMSStore {
         createdAt: new Date().toISOString()
       };
       events.unshift(newEvent);
+      this._apiSync('/api/events', 'POST', newEvent);
     }
     this.set(STORAGE_KEYS.EVENTS, events);
     return events;
@@ -378,6 +420,7 @@ export class VAMSStore {
   deleteEvent(id) {
     const events = this.getEvents().filter(e => e.id !== id);
     this.set(STORAGE_KEYS.EVENTS, events);
+    this._apiSync(`/api/events/${id}`, 'DELETE');
     return events;
   }
 
@@ -469,6 +512,17 @@ export class VAMSStore {
         evt.registeredCount = (evt.registeredCount || 0) + allocatedSeats.length;
         this.set(STORAGE_KEYS.EVENTS, events);
       }
+
+      // Persist booking & seat allocation in PostgreSQL
+      this._apiSync('/api/bookings', 'POST', {
+        eventId: data.eventId,
+        name: data.name,
+        email: data.email,
+        ticketType: newAttendee.seatSection,
+        sectionName: newAttendee.seatSection,
+        seats: allocatedSeats,
+        totalAmount: data.amount || 0
+      });
     }
     return newAttendee;
   }
@@ -483,6 +537,7 @@ export class VAMSStore {
     target.status = 'checked-in';
     target.checkInTime = new Date().toLocaleTimeString();
     this.set(STORAGE_KEYS.ATTENDEES, attendees);
+    this._apiSync('/api/bookings/checkin', 'POST', { ticketId });
     return { success: true, message: `Checked in successfully: ${target.name} (${target.role})`, attendee: target };
   }
 
@@ -533,6 +588,17 @@ export class VAMSStore {
   // User Profile & Role Switcher
   getCurrentUser() {
     return this.get(STORAGE_KEYS.USER) || DEFAULT_USER;
+  }
+
+  setCurrentUser(userData) {
+    const current = this.getCurrentUser();
+    const updated = {
+      ...current,
+      ...userData,
+      avatar: userData.avatar || (userData.name ? userData.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : current.avatar)
+    };
+    this.set(STORAGE_KEYS.USER, updated);
+    return updated;
   }
 
   setCurrentUserRole(role) {
